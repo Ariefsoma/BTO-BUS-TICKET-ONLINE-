@@ -21,17 +21,16 @@ Route::middleware('auth')->group(function () {
  
 
 Route::get('/search-route', function (Illuminate\Http\Request $request) {
-    // Jika belum login, redirect ke login dulu
+ 
     if (!Auth::check()) {
-        // Simpan dulu input supaya bisa digunakan nanti
+
         session([
             'pending_from' => $request->from,
             'pending_to' => $request->to,
         ]);
         return redirect()->route('login');
     }
-
-    // Jika sudah login, arahkan ke halaman pencarian tiket user
+ 
     return redirect()->route('user.search', [
         'from' => $request->from,
         'to' => $request->to,
@@ -65,3 +64,35 @@ Route::middleware(['auth'])->get('/user/search', function (Request $request) {
 
 
 require __DIR__.'/auth.php';
+
+  
+
+Route::get('/', function () {
+    return view('welcome');
+})->name('home');
+ 
+Route::get('/rute/{id}', function ($id) {
+ 
+    if (!Auth::check()) {
+        return redirect()->route('login')->with('error', 'Silakan login terlebih dahulu!');
+    }
+ 
+    $routes = [
+        1 => ['from' => 'Jakarta', 'to' => 'Bandung', 'time' => '07:30 WIB', 'price' => 120000],
+        2 => ['from' => 'Surabaya', 'to' => 'Malang', 'time' => '08:00 WIB', 'price' => 90000],
+        3 => ['from' => 'Yogyakarta', 'to' => 'Semarang', 'time' => '09:00 WIB', 'price' => 100000],
+        4 => ['from' => 'Denpasar', 'to' => 'Ubud', 'time' => '10:00 WIB', 'price' => 75000],
+    ];
+
+    $route = $routes[$id] ?? null;
+
+    if (!$route) abort(404);
+
+    return view('route-info', compact('route'));
+})->name('route.info');
+
+Route::middleware(['auth', 'is_admin'])->group(function () {
+    Route::get('/admin/dashboard', function () {
+        return view('admin.dashboard');
+    })->name('admin.dashboard');
+});
