@@ -31,27 +31,26 @@ class AuthenticatedSessionController extends Controller
 
     $user = auth()->user();
  
-    if ($user->role === 'admin') {
-        return redirect('/admin/dashboard');  
-    }
-     
-    return redirect('/dashboard');
-   
     if (session()->has('pending_from') && session()->has('pending_to')) {
         $from = session('pending_from');
         $to = session('pending_to');
- 
         session()->forget(['pending_from', 'pending_to']);
- 
+
         return redirect()->route('user.search', [
             'from' => $from,
             'to' => $to,
         ]);
     }
  
-    return redirect()->intended(route('dashboard', absolute: false));
+    if ($user->role === 'admin') {
+        return redirect('/admin/dashboard');
+    }
+ 
+    return redirect('/dashboard');
 }
 
+ 
+  
 
 
     /**
