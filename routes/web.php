@@ -100,7 +100,38 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/booking/store', [BookingController::class, 'store'])
         ->name('booking.store');
 });
+// ========================
+// 🛠️ DASHBOARD ADMIN
+// ========================
+Route::middleware(['auth'])->group(function () {
+    Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])
+        ->name('admin.dashboard');
+});
 
+// ========================
+// 🚌 ADMIN - MANAJEMEN BUS
+// ========================
+Route::middleware(['auth'])->prefix('admin')->group(function () {
+    Route::get('/bus/create', [BusController::class, 'create'])->name('admin.bus.create');
+    Route::post('/bus/store', [BusController::class, 'store'])->name('admin.bus.store');
+    Route::get('/bus', [BusController::class, 'index'])->name('admin.bus.index');
+});
+// ========================
+// 🛣️ ADMIN - MANAJEMEN RUTE
+// ========================
+Route::middleware(['auth'])->prefix('admin')->group(function () {
+    Route::get('/routes', [RouteController::class, 'index'])->name('admin.routes.index');
+    Route::get('/routes/create', [RouteController::class, 'create'])->name('admin.routes.create');
+    Route::post('/routes/store', [RouteController::class, 'store'])->name('admin.routes.store');
+});
+// ========================
+// 🕒 ADMIN - MANAJEMEN JADWAL
+// ========================
+Route::middleware(['auth'])->prefix('admin')->group(function () {
+    Route::get('/schedules', [ScheduleController::class, 'index'])->name('admin.schedules.index');
+    Route::get('/schedules/create', [ScheduleController::class, 'create'])->name('admin.schedules.create');
+    Route::post('/schedules/store', [ScheduleController::class, 'store'])->name('admin.schedules.store');
+});
 
 // ========================
 // 🔍 USER SEARCH (SETELAH LOGIN)
@@ -127,6 +158,22 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
+// ========================
+// 🧾 USER - RIWAYAT PEMESANAN
+// ========================
+Route::middleware(['auth'])->group(function () {
+    Route::get('/user/history', function () {
+        $bookings = \App\Models\Booking::with(['schedule.route', 'schedule.bus'])
+            ->where('user_id', Auth::id())
+            ->latest()
+            ->get();
+
+        return view('user.booking_history', compact('bookings'));
+    })->name('user.history');
+});
+
+
 
 
 // ========================
