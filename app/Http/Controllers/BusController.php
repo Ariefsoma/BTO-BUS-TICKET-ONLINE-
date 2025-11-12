@@ -4,34 +4,55 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Bus;
+use App\Models\Route;
+use App\Models\Schedule;
 
 class BusController extends Controller
 {
     public function index()
     {
-        $buses = Bus::all();
-        return view('admin.dashboard', compact('buses'));
+        $availableCities = Route::select('origin')
+            ->distinct()
+            ->pluck('origin')
+            ->merge(Route::select('destination')->distinct()->pluck('destination'))
+            ->unique()
+            ->sort()
+            ->values();
+
+        return view('welcome', compact('availableCities'));
     }
 
-    public function create()
+    // 🔍 Form pencarian bus (tampilan awal)
+    public function searchForm()
     {
-        return view('admin.add-bus');
+        return view('user.search');
     }
 
-    public function store(Request $request)
+    // 🔍 Hasil pencarian bus
+    public function searchResults(Request $request)
     {
         $request->validate([
-            'bus_name' => 'required|string|max:255',
-            'bus_type' => 'nullable|string|max:255',
-            'seat_count' => 'required|integer|min:1',
-            'price_per_seat' => 'required|numeric|min:0',
-            'status' => 'required|in:aktif,nonaktif',
+            'from' => 'required',
+            'to'   => 'required',
         ]);
 
-        Bus::create($request->only([
-            'bus_name', 'bus_type', 'seat_count', 'price_per_seat', 'status'
-        ]));
+        $from = $request->from;
+        $to   = $request->to;
 
-        return redirect()->route('admin.bus.index')->with('success', 'Bus baru berhasil ditambahkan!');
+        $buses = Bus::with('route')
+            ->whereHas('route', function ($q) use ($from, $to) {
+                $q->where('origin', $from)
+                  ->where('destination', $to);
+            })
+            ->get();
+
+        return view('user.search-results', compact('buses', 'from', 'to'));
+    }
+
+    // 🚌 Detail satu bus
+    public function show($id)
+    {
+        $bus = Bus::with('route')->findOrFail($id);
+        return view('user.bus-detail', compact('bus'));
     }
 }

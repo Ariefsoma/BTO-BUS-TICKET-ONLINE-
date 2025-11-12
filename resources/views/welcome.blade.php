@@ -52,21 +52,31 @@
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
+
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto align-items-center">
                     <li class="nav-item"><a class="nav-link" href="{{ url('/') }}">Beranda</a></li>
                     <li class="nav-item"><a class="nav-link" href="#">Rute</a></li>
                     <li class="nav-item"><a class="nav-link" href="#">Kontak</a></li>
 
-                    @auth
-                        <li class="nav-item">
-                            <a class="btn btn-outline-danger ms-3" href="{{ route('logout') }}"
-                               onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                                Keluar
+                    {{-- ✅ Gunakan Auth::check() agar tidak error saat user belum login --}}
+                    @if (Auth::check())
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle text-primary" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                {{ Auth::user()->name }}
                             </a>
-                            <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
-                                @csrf
-                            </form>
+                            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                                @if (Auth::user()->role === 'admin')
+                                    <li><a class="dropdown-item" href="{{ route('admin.dashboard') }}">Admin Panel</a></li>
+                                @endif
+                                <li><a class="dropdown-item" href="{{ route('user.dashboard') }}">Dashboard</a></li>
+                                <li>
+                                    <form id="logout-form" action="{{ route('logout') }}" method="POST">
+                                        @csrf
+                                        <button type="submit" class="dropdown-item text-danger">Keluar</button>
+                                    </form>
+                                </li>
+                            </ul>
                         </li>
                     @else
                         <li class="nav-item">
@@ -75,7 +85,7 @@
                         <li class="nav-item">
                             <a class="btn btn-primary ms-2" href="{{ route('login') }}">Masuk</a>
                         </li>
-                    @endauth
+                    @endif
                 </ul>
             </div>
         </div>
@@ -90,10 +100,20 @@
 
                 <form class="row g-2 mt-3" action="{{ route('search.route') }}" method="GET">
                     <div class="col-md-5">
-                        <input type="text" name="from" class="form-control" placeholder="Kota Asal" required>
+                        <select name="from" class="form-select" required>
+                            <option value="">Pilih Kota Asal</option>
+                            @foreach($availableCities as $city)
+                                <option value="{{ $city }}">{{ $city }}</option>
+                            @endforeach
+                        </select>
                     </div>
                     <div class="col-md-5">
-                        <input type="text" name="to" class="form-control" placeholder="Kota Tujuan" required>
+                        <select name="to" class="form-select" required>
+                            <option value="">Pilih Kota Tujuan</option>
+                            @foreach($availableCities as $city)
+                                <option value="{{ $city }}">{{ $city }}</option>
+                            @endforeach
+                        </select>
                     </div>
                     <div class="col-md-2">
                         <button class="btn btn-warning w-100" type="submit">Cari</button>
@@ -110,7 +130,7 @@
             <div class="row g-4">
 
                 <div class="col-md-3">
-                    <a href="{{ route('route.info', 1) }}" class="text-decoration-none text-dark">
+                    <a href="{{ route('search.route', ['from' => 'Jakarta', 'to' => 'Bandung']) }}" class="text-decoration-none text-dark">
                         <div class="card-route text-center p-2">
                             <img src="{{ asset('images/bandung.jpg') }}" alt="Jakarta - Bandung">
                             <h5 class="mt-2">Jakarta - Bandung</h5>
@@ -119,7 +139,7 @@
                 </div>
 
                 <div class="col-md-3">
-                    <a href="{{ route('route.info', 2) }}" class="text-decoration-none text-dark">
+                    <a href="{{ route('search.route', ['from' => 'Surabaya', 'to' => 'Malang']) }}" class="text-decoration-none text-dark">
                         <div class="card-route text-center p-2">
                             <img src="{{ asset('images/malang.jpg') }}" alt="Surabaya - Malang">
                             <h5 class="mt-2">Surabaya - Malang</h5>
@@ -128,7 +148,7 @@
                 </div>
 
                 <div class="col-md-3">
-                    <a href="{{ route('route.info', 3) }}" class="text-decoration-none text-dark">
+                    <a href="{{ route('search.route', ['from' => 'Yogyakarta', 'to' => 'Semarang']) }}" class="text-decoration-none text-dark">
                         <div class="card-route text-center p-2">
                             <img src="{{ asset('images/semarang.jpg') }}" alt="Yogyakarta - Semarang">
                             <h5 class="mt-2">Yogyakarta - Semarang</h5>
@@ -137,7 +157,7 @@
                 </div>
 
                 <div class="col-md-3">
-                    <a href="{{ route('route.info', 4) }}" class="text-decoration-none text-dark">
+                    <a href="{{ route('search.route', ['from' => 'Denpasar', 'to' => 'Ubud']) }}" class="text-decoration-none text-dark">
                         <div class="card-route text-center p-2">
                             <img src="{{ asset('images/ubud.jpg') }}" alt="Denpasar - Ubud">
                             <h5 class="mt-2">Denpasar - Ubud</h5>

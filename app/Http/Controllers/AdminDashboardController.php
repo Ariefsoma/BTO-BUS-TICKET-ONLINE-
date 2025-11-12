@@ -8,8 +8,12 @@ use App\Models\Bus;
 class AdminDashboardController extends Controller
 {
     public function index()
-    {
-        $buses = Bus::all();
-        return view('admin.dashboard', compact('buses'));
-    }
+{
+    $buses = \App\Models\Bus::all();
+    $routes = \App\Models\Route::all();
+    $schedules = \App\Models\Schedule::all();
+
+    return view('admin.dashboard', compact('buses', 'routes', 'schedules'));
+}
+
 }
